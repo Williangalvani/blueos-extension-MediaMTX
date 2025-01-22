@@ -1,0 +1,12 @@
+# MediaMTX configuration file
+paths:
+  all:
+    readUser: admin
+    readPass: password
+    
+  input:
+    source: ${TARGET_RTSP_URL}
+    sourceProtocol: tcp
+    
+protocols: [tcp, udp]
+logLevel: info
