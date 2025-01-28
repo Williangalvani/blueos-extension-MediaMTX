@@ -1,5 +1,5 @@
 # Use Alpine Linux as base image for smaller size
-FROM alpine:3.20
+FROM golang:1.23.5-alpine3.21
 
 # Install required dependencies
 RUN apk add --no-cache \
@@ -16,7 +16,7 @@ WORKDIR /app
 
 # Clone and build mediamtx with a specific version
 RUN git clone https://github.com/aler9/mediamtx.git . && \
-    git checkout v1.9.3 && \
+    git checkout v1.11.2 && \
     go generate ./... && \
     CGO_ENABLED=0 go build .
 
@@ -26,6 +26,7 @@ RUN mkdir /app/config
 # Copy configuration file and start script
 COPY mediamtx.yml /app/config/mediamtx.yml.template
 COPY start.sh /app/start.sh
+COPY reader.js /app/reader.js
 COPY index.html /app/index.html
 COPY webserver.py /app/webserver.py
 RUN chmod +x /app/start.sh /app/webserver.py

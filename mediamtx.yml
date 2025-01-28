@@ -1,30 +1,19 @@
 # MediaMTX configuration file
 paths:
-  all:
-    readUser: admin
-    readPass: password
-    
   input:
     source: ${TARGET_RTSP_URL}
     sourceProtocol: tcp
-    # Enable all protocols for this path
-    protocols: [tcp, udp, webrtc]
-    
-protocols: [tcp, udp]
 
-rtmp:
-  enabled: false
+# RTSP settings
+rtspAddress: :8554
 
-rtsp:
-  enabled: true
+# WebRTC settings
+webrtcAddress: :8889
+webrtcICEServers: ["stun:stun.l.google.com:19302"]
 
-webrtc:
-  enabled: true
-  # ICE servers for WebRTC connectivity (STUN server)
-  iceServers: [stun:stun.l.google.com:19302]
-  # Enable different encryption modes
-  encryption: yes
-  # Address to listen for WebRTC requests
-  address: :8889
+# Disable unused features
+api: false
+metrics: false
+pprof: false
 
-logLevel: info
+logLevel: debug
