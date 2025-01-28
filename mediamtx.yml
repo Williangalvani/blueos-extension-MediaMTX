@@ -9,4 +9,11 @@ paths:
     sourceProtocol: tcp
     
 protocols: [tcp, udp]
+
+rtmp:
+  enabled: false
+
+rtsp:
+  enabled: true
+
 logLevel: info
