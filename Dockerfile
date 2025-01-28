@@ -8,7 +8,8 @@ RUN apk add --no-cache \
     git \
     go \
     ffmpeg \
-    gettext
+    gettext \
+    python3
 
 # Set working directory
 WORKDIR /app
@@ -25,10 +26,14 @@ RUN mkdir /app/config
 # Copy configuration file and start script
 COPY mediamtx.yml /app/config/mediamtx.yml.template
 COPY start.sh /app/start.sh
-RUN chmod +x /app/start.sh
+COPY index.html /app/index.html
+COPY webserver.py /app/webserver.py
+RUN chmod +x /app/start.sh /app/webserver.py
 
-# Expose RTSP port
+# Expose RTSP, WebRTC, and web server ports
 EXPOSE 8554
+EXPOSE 8889
+EXPOSE 8908
 
 # Set default environment variable
 ENV TARGET_RTSP_URL=rtsp://source-camera:554/stream

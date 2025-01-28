@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebRTC Stream Viewer</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+        video {
+            max-width: 100%;
+            margin: 20px 0;
+            background: #000;
+        }
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .error {
+            background: #ffebee;
+            color: #c62828;
+        }
+    </style>
+</head>
+<body>
+    <h1>WebRTC Stream</h1>
+    <video id="video" autoplay playsinline controls></video>
+    <div id="status" class="status"></div>
+
+    <script>
+        const video = document.getElementById('video');
+        const statusDiv = document.getElementById('status');
+        
+        // Get the server IP from the current window location
+        const serverIP = window.location.hostname;
+        const webrtcPort = '8889';
+        
+        async function startStream() {
+            try {
+                statusDiv.textContent = 'Connecting to stream...';
+                
+                const pc = new RTCPeerConnection({
+                    iceServers: [{
+                        urls: ['stun:stun.l.google.com:19302']
+                    }]
+                });
+
+                pc.addTransceiver('video', {direction: 'recvonly'});
+                
+                // Handle connection state changes
+                pc.onconnectionstatechange = () => {
+                    statusDiv.textContent = `Connection state: ${pc.connectionState}`;
+                    if (pc.connectionState === 'failed') {
+                        statusDiv.classList.add('error');
+                    } else {
+                        statusDiv.classList.remove('error');
+                    }
+                };
+
+                // Handle ICE connection state changes
+                pc.oniceconnectionstatechange = () => {
+                    console.log('ICE connection state:', pc.iceConnectionState);
+                };
+
+                // Create and set local description
+                const offer = await pc.createOffer();
+                await pc.setLocalDescription(offer);
+
+                // Send offer to MediaMTX server
+                const response = await fetch(`http://${serverIP}:${webrtcPort}/input/whep`, {
+                    method: 'POST',
+                    body: pc.localDescription.sdp
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Server responded with ${response.status}`);
+                }
+
+                const sdp = await response.text();
+                await pc.setRemoteDescription({
+                    type: 'answer',
+                    sdp: sdp
+                });
+
+                // Handle incoming video track
+                pc.ontrack = (event) => {
+                    video.srcObject = event.streams[0];
+                    statusDiv.textContent = 'Stream connected';
+                };
+
+            } catch (error) {
+                console.error('Error:', error);
+                statusDiv.textContent = `Error: ${error.message}`;
+                statusDiv.classList.add('error');
+            }
+        }
+
+        // Start streaming when page loads
+        startStream();
+    </script>
+</body>
+</html> 

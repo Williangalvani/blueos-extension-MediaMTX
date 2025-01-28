@@ -7,6 +7,8 @@ paths:
   input:
     source: ${TARGET_RTSP_URL}
     sourceProtocol: tcp
+    # Enable all protocols for this path
+    protocols: [tcp, udp, webrtc]
     
 protocols: [tcp, udp]
 
@@ -15,5 +17,14 @@ rtmp:
 
 rtsp:
   enabled: true
+
+webrtc:
+  enabled: true
+  # ICE servers for WebRTC connectivity (STUN server)
+  iceServers: [stun:stun.l.google.com:19302]
+  # Enable different encryption modes
+  encryption: yes
+  # Address to listen for WebRTC requests
+  address: :8889
 
 logLevel: info
