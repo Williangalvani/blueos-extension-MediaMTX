@@ -1,0 +1,9 @@
+{
+    "name":"RTSP Relay",
+    "description":"RTSP Relay extension",
+    "icon":"mdi-video-box",
+    "company":"Willian Galvani",
+    "version":"1.0.0",
+    "webpage":"",
+    "api":""
+ }

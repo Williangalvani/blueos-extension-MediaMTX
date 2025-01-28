@@ -29,6 +29,7 @@ COPY start.sh /app/start.sh
 COPY reader.js /app/reader.js
 COPY index.html /app/index.html
 COPY webserver.py /app/webserver.py
+COPY register_service /app/register_service
 RUN chmod +x /app/start.sh /app/webserver.py
 
 # Expose RTSP, WebRTC, and web server ports
