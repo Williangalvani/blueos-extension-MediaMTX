@@ -37,6 +37,24 @@
             box-sizing: border-box;
             text-shadow: 0 0 5px black;
         }
+        #stats {
+            position: absolute;
+            top: 50px;
+            left: 10px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            z-index: 2;
+            display: none;
+        }
+        #stats.visible {
+            display: block;
+        }
+        #stats-canvas {
+            margin-top: 10px;
+        }
     </style>
     <link rel="icon" href="data:,">
     <script defer src="./reader.js"></script>
@@ -44,6 +62,10 @@
 <body>
     <video id="video"></video>
     <div id="message"></div>
+    <div id="stats">
+        <div id="stats-text"></div>
+        <canvas id="stats-canvas" width="130" height="200"></canvas>
+    </div>
 
     <script>
         const video = document.getElementById('video');
@@ -85,6 +107,93 @@
 
             const serverIP = window.location.hostname;
             const baseUrl = `http://${serverIP}:8889/input/whep`;
+            const stats = document.getElementById('stats');
+            const statsText = document.getElementById('stats-text');
+            const canvas = document.getElementById('stats-canvas');
+            const ctx = canvas.getContext('2d');
+
+            // Stats tracking variables
+            let statsVisible = false;
+            const maxDataPoints = 100;
+            const bitrateData = new Array(maxDataPoints).fill(0);
+            const framerateData = new Array(maxDataPoints).fill(0);
+            let lastByteCount = 0;
+            let lastTimestamp = 0;
+
+            // Toggle stats with 'S' key
+            document.addEventListener('keydown', (e) => {
+                if (e.key.toLowerCase() === 's') {
+                    statsVisible = !statsVisible;
+                    stats.classList.toggle('visible');
+                }
+            });
+
+            function updateStats(stream) {
+                if (!statsVisible) return;
+                
+                const videoTrack = stream.getVideoTracks()[0];
+                if (!videoTrack) return;
+
+                videoTrack.getStats().then((stats) => {
+                    stats.forEach((report) => {
+                        if (report.type === 'inbound-rtp' && report.kind === 'video') {
+                            const now = report.timestamp;
+                            const bytes = report.bytesReceived;
+                            const packets = report.packetsLost;
+                            const frames = report.framesDecoded;
+
+                            // Calculate bitrate
+                            const bitrate = 8 * (bytes - lastByteCount) / (now - lastTimestamp) * 1000 / 1000; // kbps
+                            lastByteCount = bytes;
+                            lastTimestamp = now;
+
+                            // Update data arrays
+                            bitrateData.push(bitrate);
+                            bitrateData.shift();
+                            framerateData.push(report.framesPerSecond || 0);
+                            framerateData.shift();
+
+                            // Update text stats
+                            statsText.innerHTML = `
+                                Bitrate: ${bitrate.toFixed(0)} kbps<br>
+                                FPS: ${(report.framesPerSecond || 0).toFixed(1)}<br>
+                                Packets Lost: ${packets || 0}<br>
+                                Resolution: ${report.frameWidth}x${report.frameHeight}
+                            `;
+
+                            // Draw graphs
+                            drawStats();
+                        }
+                    });
+                });
+            }
+
+            function drawStats() {
+                const width = canvas.width;
+                const height = canvas.height;
+                
+                ctx.clearRect(0, 0, width, height);
+                
+                // Draw bitrate (orange)
+                ctx.strokeStyle = 'rgb(255, 165, 0)';
+                drawLine(bitrateData, width, height);
+                
+                // Draw framerate (green)
+                ctx.strokeStyle = 'rgb(0, 255, 0)';
+                drawLine(framerateData, width, height);
+            }
+
+            function drawLine(data, width, height) {
+                const maxValue = Math.max(...data);
+                ctx.beginPath();
+                data.forEach((value, index) => {
+                    const x = (index / maxDataPoints) * width;
+                    const y = height - (value / maxValue) * height;
+                    if (index === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                });
+                ctx.stroke();
+            }
 
             new MediaMTXWebRTCReader({
                 url: baseUrl + window.location.search,
@@ -94,6 +203,47 @@
                 onTrack: (evt) => {
                     setMessage('');
                     video.srcObject = evt.streams[0];
+                    
+                    // Get the peer connection from the reader
+                    const pc = evt.target; // This is the RTCPeerConnection
+                    
+                    // Start stats monitoring
+                    setInterval(() => {
+                        if (!statsVisible) return;
+                        
+                        pc.getStats().then((stats) => {
+                            stats.forEach((report) => {
+                                if (report.type === 'inbound-rtp' && report.kind === 'video') {
+                                    const now = report.timestamp;
+                                    const bytes = report.bytesReceived;
+                                    const packets = report.packetsLost;
+                                    const frames = report.framesDecoded;
+
+                                    // Calculate bitrate
+                                    const bitrate = 8 * (bytes - lastByteCount) / (now - lastTimestamp) * 1000 / 1000; // kbps
+                                    lastByteCount = bytes;
+                                    lastTimestamp = now;
+
+                                    // Update data arrays
+                                    bitrateData.push(bitrate);
+                                    bitrateData.shift();
+                                    framerateData.push(report.framesPerSecond || 0);
+                                    framerateData.shift();
+
+                                    // Update text stats
+                                    statsText.innerHTML = `
+                                        Bitrate: ${bitrate.toFixed(0)} kbps<br>
+                                        FPS: ${(report.framesPerSecond || 0).toFixed(1)}<br>
+                                        Packets Lost: ${packets || 0}<br>
+                                        Resolution: ${report.frameWidth}x${report.frameHeight}
+                                    `;
+
+                                    // Draw graphs
+                                    drawStats();
+                                }
+                            });
+                        });
+                    }, 1000);
                 },
             });
         });
