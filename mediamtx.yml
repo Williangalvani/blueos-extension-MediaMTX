@@ -1,11 +1,17 @@
 # MediaMTX configuration file
 paths:
   input:
-    source: rtsp://127.0.0.1:8554/video_stream_ball
-    sourceProtocol: tcp
+    # Change this to the URL of the RTSP stream you want to proxy
+    # Default is the RTSP stream from the Syiy A8 camera
+    source: rtsp://192.168.144.25:8554/main.264
+    sourceProtocol: udp
 
 # RTSP settings
-rtspAddress: :8554
+# play this with
+# ffplay rtsp://10.243.81.105:8554/input\?timeout=0
+# or similar
+# make sure this port is not being used by another application/stream
+rtspAddress: :8555
 
 # WebRTC settings
 webrtcAddress: :8889
@@ -16,4 +22,4 @@ api: false
 metrics: false
 pprof: false
 
-#logLevel: debug
+logLevel: debug
