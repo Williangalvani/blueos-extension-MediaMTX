@@ -3,249 +3,300 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width">
-    <title>WebRTC Stream Viewer</title>
+    <title>RTSP Relay Configuration</title>
     <style>
         html, body {
             margin: 0;
             padding: 0;
             height: 100%;
             font-family: 'Arial', sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
         }
-        #video {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgb(30, 30, 30);
-        }
-        #message {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            text-align: center;
-            justify-content: center;
-            font-size: 16px;
-            font-weight: bold;
-            color: white;
-            pointer-events: none;
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
             padding: 20px;
-            box-sizing: border-box;
-            text-shadow: 0 0 5px black;
         }
-        #stats {
-            position: absolute;
-            top: 50px;
-            left: 10px;
-            background-color: rgba(0, 0, 0, 0.5);
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: #2c3e50;
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+        header p {
+            color: #7f8c8d;
+            margin: 0;
+        }
+        .card-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 10px;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            width: 250px;
+            padding: 16px;
+            margin: 10px;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .card-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+            color: #3498db;
+        }
+        .card h2 {
+            margin-top: 0;
+            font-size: 18px;
+            color: #2c3e50;
+        }
+        .card p {
+            color: #7f8c8d;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #3498db;
             color: white;
-            padding: 10px;
-            font-family: monospace;
-            font-size: 12px;
-            z-index: 2;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-weight: bold;
+            transition: background 0.3s;
+            font-size: 14px;
+            border: none;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        .yaml-editor {
+            margin-top: 30px;
+            width: 100%;
             display: none;
         }
-        #stats.visible {
-            display: block;
+        .yaml-editor h2 {
+            margin-bottom: 15px;
+            font-size: 20px;
         }
-        #stats-canvas {
-            margin-top: 10px;
+        #editor-container {
+            width: 100%;
+            height: 550px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        .editor-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .btn-save {
+            background-color: #27ae60;
+        }
+        .btn-save:hover {
+            background-color: #219653;
+        }
+        .btn-cancel {
+            background-color: #e74c3c;
+        }
+        .btn-cancel:hover {
+            background-color: #c0392b;
+        }
+        .btn-restart {
+            background-color: #f39c12;
+        }
+        .btn-restart:hover {
+            background-color: #d68910;
+        }
+        .status-message {
+            margin-top: 12px;
+            padding: 10px 12px;
+            border-radius: 4px;
+            display: none;
+            font-size: 14px;
+            text-align: center;
+        }
+        .status-success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .status-error {
+            background-color: #f8d7da;
+            color: #721c24;
         }
     </style>
     <link rel="icon" href="data:,">
-    <script defer src="./reader.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ace-builds@1.31.1/css/ace.min.css">
 </head>
 <body>
-    <video id="video"></video>
-    <div id="message"></div>
-    <div id="stats">
-        <div id="stats-text"></div>
-        <canvas id="stats-canvas" width="130" height="200"></canvas>
+    <div class="container">
+        <header>
+            <h1>RTSP Relay Configuration</h1>
+            <p>Configure and manage your RTSP relay service</p>
+        </header>
+        
+        <div class="card-container">
+            <div class="card">
+                <div class="card-icon">📹</div>
+                <h2>WebRTC Viewer</h2>
+                <p>View the live RTSP stream using WebRTC technology</p>
+                <a href="/webrtc" class="btn">Open Viewer</a>
+            </div>
+            
+            <div class="card">
+                <div class="card-icon">⚙️</div>
+                <h2>YAML Configuration</h2>
+                <p>Edit the mediamtx.yml configuration file</p>
+                <a href="#" class="btn" id="edit-config-btn">Edit Configuration</a>
+            </div>
+        </div>
+        
+        <div class="yaml-editor" id="yaml-editor">
+            <h2>Edit Configuration</h2>
+            <div id="editor-container"></div>
+            <div class="editor-actions">
+                <button class="btn btn-cancel" id="cancel-btn">Cancel</button>
+                <button class="btn btn-restart" id="restart-btn">Restart MediaMTX</button>
+                <button class="btn btn-save" id="save-btn">Save & Restart</button>
+            </div>
+            <div class="status-message" id="status-message"></div>
+        </div>
     </div>
-
+    
+    <script src="https://cdn.jsdelivr.net/npm/ace-builds@1.31.1/src-min-noconflict/ace.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ace-builds@1.31.1/src-min-noconflict/mode-yaml.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ace-builds@1.31.1/src-min-noconflict/theme-monokai.js"></script>
     <script>
-        const video = document.getElementById('video');
-        const message = document.getElementById('message');
-        let defaultControls = false;
-
-        const setMessage = (str) => {
-            if (str !== '') {
-                video.controls = false;
-            } else {
-                video.controls = defaultControls;
-            }
-            message.innerText = str;
-        };
-
-        const parseBoolString = (str, defaultVal) => {
-            str = (str || '');
-
-            if (['1', 'yes', 'true'].includes(str.toLowerCase())) {
-                return true;
-            }
-            if (['0', 'no', 'false'].includes(str.toLowerCase())) {
-                return false;
-            }
-            return defaultVal;
-        };
-
-        const loadAttributesFromQuery = () => {
-            const params = new URLSearchParams(window.location.search);
-            video.controls = parseBoolString(params.get('controls'), true);
-            video.muted = parseBoolString(params.get('muted'), true);
-            video.autoplay = parseBoolString(params.get('autoplay'), true);
-            video.playsInline = parseBoolString(params.get('playsinline'), true);
-            defaultControls = video.controls;
-        };
-
-        window.addEventListener('DOMContentLoaded', () => {
-            loadAttributesFromQuery();
-
-            const serverIP = window.location.hostname;
-            const baseUrl = `http://${serverIP}:8889/input/whep`;
-            const stats = document.getElementById('stats');
-            const statsText = document.getElementById('stats-text');
-            const canvas = document.getElementById('stats-canvas');
-            const ctx = canvas.getContext('2d');
-
-            // Stats tracking variables
-            let statsVisible = false;
-            const maxDataPoints = 100;
-            const bitrateData = new Array(maxDataPoints).fill(0);
-            const framerateData = new Array(maxDataPoints).fill(0);
-            let lastByteCount = 0;
-            let lastTimestamp = 0;
-
-            // Toggle stats with 'S' key
-            document.addEventListener('keydown', (e) => {
-                if (e.key.toLowerCase() === 's') {
-                    statsVisible = !statsVisible;
-                    stats.classList.toggle('visible');
+        document.addEventListener('DOMContentLoaded', () => {
+            const editConfigBtn = document.getElementById('edit-config-btn');
+            const yamlEditor = document.getElementById('yaml-editor');
+            const cancelBtn = document.getElementById('cancel-btn');
+            const restartBtn = document.getElementById('restart-btn');
+            const saveBtn = document.getElementById('save-btn');
+            const statusMessage = document.getElementById('status-message');
+            
+            // Initialize Ace editor
+            const editor = ace.edit("editor-container");
+            editor.setTheme("ace/theme/monokai");
+            editor.session.setMode("ace/mode/yaml");
+            
+            // Load configuration when edit button is clicked
+            editConfigBtn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                yamlEditor.style.display = 'block';
+                
+                try {
+                    const response = await fetch('/api/config');
+                    if (response.ok) {
+                        const yamlContent = await response.text();
+                        editor.setValue(yamlContent);
+                        editor.clearSelection();
+                    } else {
+                        showStatus('Error loading configuration: ' + response.statusText, false);
+                    }
+                } catch (error) {
+                    showStatus('Error loading configuration: ' + error.message, false);
                 }
             });
-
-            function updateStats(stream) {
-                if (!statsVisible) return;
-                
-                const videoTrack = stream.getVideoTracks()[0];
-                if (!videoTrack) return;
-
-                videoTrack.getStats().then((stats) => {
-                    stats.forEach((report) => {
-                        if (report.type === 'inbound-rtp' && report.kind === 'video') {
-                            const now = report.timestamp;
-                            const bytes = report.bytesReceived;
-                            const packets = report.packetsLost;
-                            const frames = report.framesDecoded;
-
-                            // Calculate bitrate
-                            const bitrate = 8 * (bytes - lastByteCount) / (now - lastTimestamp) * 1000 / 1000; // kbps
-                            lastByteCount = bytes;
-                            lastTimestamp = now;
-
-                            // Update data arrays
-                            bitrateData.push(bitrate);
-                            bitrateData.shift();
-                            framerateData.push(report.framesPerSecond || 0);
-                            framerateData.shift();
-
-                            // Update text stats
-                            statsText.innerHTML = `
-                                Bitrate: ${bitrate.toFixed(0)} kbps<br>
-                                FPS: ${(report.framesPerSecond || 0).toFixed(1)}<br>
-                                Packets Lost: ${packets || 0}<br>
-                                Resolution: ${report.frameWidth}x${report.frameHeight}
-                            `;
-
-                            // Draw graphs
-                            drawStats();
-                        }
-                    });
-                });
-            }
-
-            function drawStats() {
-                const width = canvas.width;
-                const height = canvas.height;
-                
-                ctx.clearRect(0, 0, width, height);
-                
-                // Draw bitrate (orange)
-                ctx.strokeStyle = 'rgb(255, 165, 0)';
-                drawLine(bitrateData, width, height);
-                
-                // Draw framerate (green)
-                ctx.strokeStyle = 'rgb(0, 255, 0)';
-                drawLine(framerateData, width, height);
-            }
-
-            function drawLine(data, width, height) {
-                const maxValue = Math.max(...data);
-                ctx.beginPath();
-                data.forEach((value, index) => {
-                    const x = (index / maxDataPoints) * width;
-                    const y = height - (value / maxValue) * height;
-                    if (index === 0) ctx.moveTo(x, y);
-                    else ctx.lineTo(x, y);
-                });
-                ctx.stroke();
-            }
-
-            new MediaMTXWebRTCReader({
-                url: baseUrl + window.location.search,
-                onError: (err) => {
-                    setMessage(err);
-                },
-                onTrack: (evt) => {
-                    setMessage('');
-                    video.srcObject = evt.streams[0];
-                    
-                    // Get the peer connection from the reader
-                    const pc = evt.target; // This is the RTCPeerConnection
-                    
-                    // Start stats monitoring
-                    setInterval(() => {
-                        if (!statsVisible) return;
-                        
-                        pc.getStats().then((stats) => {
-                            stats.forEach((report) => {
-                                if (report.type === 'inbound-rtp' && report.kind === 'video') {
-                                    const now = report.timestamp;
-                                    const bytes = report.bytesReceived;
-                                    const packets = report.packetsLost;
-                                    const frames = report.framesDecoded;
-
-                                    // Calculate bitrate
-                                    const bitrate = 8 * (bytes - lastByteCount) / (now - lastTimestamp) * 1000 / 1000; // kbps
-                                    lastByteCount = bytes;
-                                    lastTimestamp = now;
-
-                                    // Update data arrays
-                                    bitrateData.push(bitrate);
-                                    bitrateData.shift();
-                                    framerateData.push(report.framesPerSecond || 0);
-                                    framerateData.shift();
-
-                                    // Update text stats
-                                    statsText.innerHTML = `
-                                        Bitrate: ${bitrate.toFixed(0)} kbps<br>
-                                        FPS: ${(report.framesPerSecond || 0).toFixed(1)}<br>
-                                        Packets Lost: ${packets || 0}<br>
-                                        Resolution: ${report.frameWidth}x${report.frameHeight}
-                                    `;
-
-                                    // Draw graphs
-                                    drawStats();
-                                }
-                            });
-                        });
-                    }, 1000);
-                },
+            
+            // Hide the editor when cancel is clicked
+            cancelBtn.addEventListener('click', () => {
+                yamlEditor.style.display = 'none';
+                statusMessage.style.display = 'none';
             });
+            
+            // Restart MediaMTX without saving
+            restartBtn.addEventListener('click', async () => {
+                try {
+                    // Disable the restart button and show status
+                    restartBtn.disabled = true;
+                    showStatus('Restarting MediaMTX...', true);
+                    
+                    const response = await fetch('/api/restart');
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        showStatus('MediaMTX restarted successfully!', true);
+                        setTimeout(() => {
+                            statusMessage.style.display = 'none';
+                        }, 3000);
+                    } else {
+                        showStatus('Failed to restart MediaMTX', false);
+                    }
+                } catch (error) {
+                    showStatus('Error restarting MediaMTX: ' + error.message, false);
+                } finally {
+                    // Re-enable the restart button
+                    restartBtn.disabled = false;
+                }
+            });
+            
+            // Save configuration
+            saveBtn.addEventListener('click', async () => {
+                const yamlContent = editor.getValue();
+                
+                try {
+                    // Disable the save button and show saving status
+                    saveBtn.disabled = true;
+                    showStatus('Saving configuration and restarting MediaMTX...', true);
+                    
+                    const response = await fetch('/api/config', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'text/plain'
+                        },
+                        body: yamlContent
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        if (result.restart) {
+                            showStatus('Configuration saved and MediaMTX restarted successfully!', true);
+                        } else {
+                            showStatus('Configuration saved, but MediaMTX restart failed. Changes may not take effect until next restart.', false);
+                        }
+                        
+                        setTimeout(() => {
+                            yamlEditor.style.display = 'none';
+                            statusMessage.style.display = 'none';
+                        }, 4000);
+                    } else {
+                        showStatus('Error saving configuration: ' + result.error, false);
+                    }
+                } catch (error) {
+                    showStatus('Error saving configuration: ' + error.message, false);
+                } finally {
+                    // Re-enable the save button
+                    saveBtn.disabled = false;
+                }
+            });
+            
+            // Helper function to show status messages
+            function showStatus(message, isSuccess) {
+                statusMessage.textContent = message;
+                statusMessage.style.display = 'block';
+                
+                if (isSuccess) {
+                    statusMessage.className = 'status-message status-success';
+                } else {
+                    statusMessage.className = 'status-message status-error';
+                }
+            }
         });
     </script>
 </body>

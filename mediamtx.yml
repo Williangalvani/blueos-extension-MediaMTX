@@ -1,7 +1,7 @@
 # MediaMTX configuration file
 paths:
   input:
-    source: ${TARGET_RTSP_URL}
+    source: rtsp://127.0.0.1:8554/video_stream_ball
     sourceProtocol: tcp
 
 # RTSP settings
@@ -16,4 +16,4 @@ api: false
 metrics: false
 pprof: false
 
-logLevel: debug
+#logLevel: debug

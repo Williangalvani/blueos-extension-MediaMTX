@@ -1,9 +1,9 @@
 {
     "name":"RTSP Relay",
-    "description":"RTSP Relay extension",
-    "icon":"mdi-video-box",
+    "description":"Configure and view RTSP streams via WebRTC",
+    "icon":"mdi-video-switch",
     "company":"Willian Galvani",
-    "version":"1.0.0",
+    "version":"2.0.0",
     "webpage":"",
     "api":""
  }

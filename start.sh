@@ -1,10 +1,19 @@
 #!/bin/sh
 
-# Replace environment variable in config file
-envsubst < /app/config/mediamtx.yml.template > /app/config/mediamtx.yml
+# Define config paths
+CONFIG_DIR="/usr/blueos/extensions/mediamtx"
+CONFIG_PATH="$CONFIG_DIR/mediamtx.yml"
+TEMPLATE_PATH="/app/config/mediamtx.yml.template"
 
-# Start the web server in the background
-python3 /app/webserver.py &
+# Create directory if it doesn't exist
+mkdir -p "$CONFIG_DIR"
 
-# Start the MediaMTX server
-exec ./mediamtx /app/config/mediamtx.yml
+# Check if config file exists, if not create it from template
+if [ ! -f "$CONFIG_PATH" ]; then
+    echo "Creating initial configuration file from template"
+    envsubst < "$TEMPLATE_PATH" > "$CONFIG_PATH"
+fi
+
+# Start the web server (which will also manage MediaMTX)
+echo "Starting web server and MediaMTX..."
+exec python3 /app/webserver.py

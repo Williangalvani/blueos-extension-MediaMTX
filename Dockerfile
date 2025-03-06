@@ -22,12 +22,14 @@ RUN git clone https://github.com/aler9/mediamtx.git . && \
 
 # Create config directory
 RUN mkdir /app/config
+RUN mkdir -p /usr/blueos/extensions/mediamtx
 
 # Copy configuration file and start script
 COPY mediamtx.yml /app/config/mediamtx.yml.template
 COPY start.sh /app/start.sh
 COPY reader.js /app/reader.js
 COPY index.html /app/index.html
+COPY webrtc.html /app/webrtc.html
 COPY webserver.py /app/webserver.py
 COPY register_service /app/register_service
 RUN chmod +x /app/start.sh /app/webserver.py
@@ -37,8 +39,17 @@ EXPOSE 8554
 EXPOSE 8889
 EXPOSE 8908
 
-# Set default environment variable
-ENV TARGET_RTSP_URL=rtsp://source-camera:554/stream
+# Docker labels for BlueOS
+LABEL version="1.0.0"
+LABEL permissions='{\
+  "HostConfig": {\
+    "Privileged": true,\
+    "NetworkMode": "host",\
+    "Binds":[\
+      "/usr/blueos/extensions/mediamtx:/usr/blueos/extensions/mediamtx"\
+    ]\
+  }\
+}'
 
 # Use the start script as entrypoint
 ENTRYPOINT ["/app/start.sh"]
