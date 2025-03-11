@@ -18,7 +18,8 @@ WORKDIR /app
 RUN git clone https://github.com/aler9/mediamtx.git . && \
     git checkout v1.11.2 && \
     go generate ./... && \
-    CGO_ENABLED=0 go build .
+    CGO_ENABLED=0 go build . && \
+    rm -rf /root/.cache
 
 # Create config directory
 RUN mkdir /app/config
