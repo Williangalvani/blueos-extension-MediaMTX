@@ -17,4 +17,4 @@ jobs:
           docker-username: ${{ secrets.DOCKER_USERNAME }}
           docker-password: ${{ secrets.DOCKER_PASSWORD }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          image-name: 'blueos-extension-mediamtx'
+          image-name: 'extension-mediamtx'
