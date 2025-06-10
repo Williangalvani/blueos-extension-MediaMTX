@@ -52,5 +52,26 @@ LABEL permissions='{\
   }\
 }'
 
+LABEL authors='[\
+    {\
+        "name": "Willian Galvani",\
+        "email": "willian@bluerobotics.com"\
+    }\
+]'
+LABEL company='{\
+        "about": "",\
+        "name": "Blue Robotics",\
+        "email": "support@bluerobotics.com"\
+    }'
+LABEL type="other"
+LABEL tags='[\
+        "communication"\
+    ]'
+LABEL readme='https://raw.githubusercontent.com/Williangalvani/blueos-extension-MediaMTX//{tag}/README.md'
+LABEL links='{\
+        "website": "https://github.com/Williangalvani/blueos-extension-MediaMTX/",\
+        "support": "https://github.com/Williangalvani/blueos-extension-MediaMTX//issues"\
+    }'
+
 # Use the start script as entrypoint
 ENTRYPOINT ["/app/start.sh"]
